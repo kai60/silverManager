@@ -10,4 +10,6 @@
 
 @interface SilverView : UIView<UITableViewDelegate,UITableViewDataSource>
 @property (nonatomic, strong) UITableView *tableView;
+@property (nonatomic,strong)NSDictionary*congfigDic;//id name 配置数据
+@property(nonatomic,strong)NSArray*headerArray;//header
 @end

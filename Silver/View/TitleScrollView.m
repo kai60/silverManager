@@ -35,12 +35,13 @@
         {
             UIButton*button=[UIButton buttonWithType:UIButtonTypeCustom];
             
-            CGSize size=[Utility getSizeWith:array[i] Font:Font(18) MaxSize:CGSizeMake(100, 44)];
+            NSDictionary*dic=array[i];
+            CGSize size=[Utility getSizeWith:dic[@"name"] Font:Font(18) MaxSize:CGSizeMake(100, 44)];
             button.frame=CGRectMake(totalWith, (frame.size.height-buttonHeight)/2.0, size.width+15, buttonHeight);
             totalWith+=size.width+15;
             
             button.tag=i;
-            [button setTitle:array[i] forState:UIControlStateNormal];
+            [button setTitle:dic[@"name"] forState:UIControlStateNormal];
             button.titleLabel.font=Font(18);
             button.titleLabel.textAlignment=NSTextAlignmentCenter;
             [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];

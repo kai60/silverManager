@@ -10,6 +10,7 @@
 #import "TitleScrollView.h"
 #import "SilverView.h"
 #import "SilverManager.h"
+#import "SDCycleScrollView.h"
 
 @interface HomeViewController ()<TitleScrollDelegate>
 
@@ -25,8 +26,8 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     [self prepareData];
-    [self initTitleView];
-    [self initScrollViewAndTableView];
+    
+    
     
     
     
@@ -37,14 +38,13 @@
 {
     
     
-    self.titleArray=@[@"精选",@"信托",@"资管",@"阳光私募",@"私募基金",@"海外保险"];
+
     
     
     
     SilverManager* silver=[SilverManager sharedManager];
     
     
-    NSURL *URL = [NSURL URLWithString:@"http://httpbin.org/get"];
     NSString*URLString=@"http://api.siyinjia.com//1.0/other/config/info1?city_id=0&platform=iphone&platform_version=9.3.2&device_id=fb83d5ce4fea33f51a7de80da79cd2341fa2a343&network_type=Wifi&channel=appstore&app_version=4.1.0&id_customer=0&customer_id=0&type_member=0&md5=1286fe";
     NSMutableURLRequest *request = [[AFHTTPRequestSerializer serializer] requestWithMethod:@"GET" URLString:URLString parameters:nil error:nil];;
     
@@ -56,6 +56,16 @@
             NSLog(@"Error: %@", error);
         } else {
             NSLog(@"%@ %@", response, responseObject);
+            if ([responseObject isKindOfClass:[NSDictionary class]])
+            {
+                NSDictionary*dic=(NSDictionary*)responseObject;
+                NSDictionary*result=dic[@"result"];
+                NSArray*titleArray=result[@"category"];
+                self.titleArray=titleArray;
+                [self initTitleView];
+                [self initScrollViewAndTableView];
+                
+            }
         }
     }];
     [dataTask resume];
@@ -93,27 +103,86 @@
 
 -(void)initScrollViewAndTableView
 {
-    UIScrollView*scrollView=[[UIScrollView alloc]initWithFrame:CGRectMake(0, 64, self.view.frame.size.width, self.view.frame.size.height-64)];
-    scrollView.delegate=self;
-    [self.titleArray enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-        SilverView*silerView=[[SilverView alloc]initWithFrame:CGRectMake(idx*scrollView.frame.size.width, 0, scrollView.frame.size.width, scrollView.frame.size.height)];
-        
-        [scrollView addSubview:silerView];
-        if (idx==0)
-        {
-            self.silerView=silerView;
-           // silerView.tableView.backgroundColor=[UIColor orangeColor];
-        }
-        
+    
+    
+    SilverManager* silver=[SilverManager sharedManager];
+    
+    
+    NSString*URLString=@"http://api.siyinjia.com//1.0/other/banner/list?city_id=0&platform=iphone&platform_version=9.3.2&device_id=fb83d5ce4fea33f51a7de80da79cd2341fa2a343&network_type=Wifi&channel=appstore&app_version=4.1.0&id_customer=0&customer_id=0&type_member=0&md5=e22632";
+    NSMutableURLRequest *request = [[AFHTTPRequestSerializer serializer] requestWithMethod:@"GET" URLString:URLString parameters:nil error:nil];;
+    
+    
+    
+    
+    NSURLSessionDataTask *dataTask = [silver.netManager dataTaskWithRequest:request completionHandler:^(NSURLResponse *response, id responseObject, NSError *error) {
+        if (error) {
+            NSLog(@"Error: %@", error);
+        } else {
+            NSLog(@"%@ %@", response, responseObject);
+            if ([responseObject isKindOfClass:[NSDictionary class]])
+            {
+                NSDictionary*dic=(NSDictionary*)responseObject;
+                NSArray*result=dic[@"result"];
+                
+                
+                
+                UIScrollView*scrollView=[[UIScrollView alloc]initWithFrame:CGRectMake(0, 64, self.view.frame.size.width, self.view.frame.size.height-64)];
+                scrollView.delegate=self;
+                [self.titleArray enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+                    SilverView*silerView=[[SilverView alloc]initWithFrame:CGRectMake(idx*scrollView.frame.size.width, 0, scrollView.frame.size.width, scrollView.frame.size.height)];
+                    silerView.congfigDic=obj;
+                    
+                    
+                    [scrollView addSubview:silerView];
+                    if (idx==1)
+                    {
+                        self.silerView=silerView;
+                        
+                        silerView.headerArray=result;
+                        
+                        
+                        SDCycleScrollView *cycleScrollView2 = [SDCycleScrollView cycleScrollViewWithFrame:CGRectMake(0, 280, silerView.frame.size.width, 160) delegate:nil placeholderImage:[UIImage imageNamed:@"header.jpeg"]];
+                        
+                        cycleScrollView2.pageControlAliment = SDCycleScrollViewPageContolAlimentCenter;
+                       // cycleScrollView2.titlesGroup = titles;
+                        
+                        NSMutableArray*imagesURLStrings=[[NSMutableArray alloc]init];
+                        for (NSDictionary*dic in result)
+                        {
+                            [imagesURLStrings addObject:dic[@"image"]];
+                        }
+                        
+                        
+                        cycleScrollView2.currentPageDotColor = [UIColor whiteColor];
+                        cycleScrollView2.imageURLStringsGroup = imagesURLStrings;
 
-        
+                        
+                        silerView.tableView.tableHeaderView=cycleScrollView2;
+
+                    }
+                    
+                    
+                    
+                }];
+                scrollView.pagingEnabled=YES;
+                
+                self.scrollView=scrollView;
+                scrollView.contentSize=CGSizeMake(self.titleArray.count*scrollView.frame.size.width, 0);
+                
+                [self.view addSubview:scrollView];
+
+                
+                
+                
+                
+
+                
+            }
+        }
     }];
-    scrollView.pagingEnabled=YES;
+    [dataTask resume];
     
-    self.scrollView=scrollView;
-    scrollView.contentSize=CGSizeMake(self.titleArray.count*scrollView.frame.size.width, 0);
     
-    [self.view addSubview:scrollView];
 }
 #pragma ----Action-----
 -(void)searchClick:(UIButton*)button
