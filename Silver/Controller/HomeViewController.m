@@ -134,7 +134,7 @@
                     
                     
                     [scrollView addSubview:silerView];
-                    if (idx==1)
+                    if (idx==0)
                     {
                         self.silerView=silerView;
                         
